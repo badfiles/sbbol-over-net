@@ -1,21 +1,21 @@
 #( Restart_token_gate_process
 \ NoActive
-Time: START-TIME
-Rule: FILE-EXIST: "d:\START.EXE"
+Time: START-TIME                                \ запуск при старте сисемы
+Rule: FILE-EXIST: "d:\START.EXE"                \ требуется файл START.EXE на диске D
 Action:						
-KILL: "start.exe"
-TRAY-REFRESH
+KILL: "start.exe"                               \ убиваем старый start
+TRAY-REFRESH                                    \ убираем фантомные иконки из трея
 StartIn: "d:\"
-IdlePriority ShowNoActivate
+IdlePriority ShowNoActivate                     \ параметры запуска гейта (чтобы при 100% CPU не вешал систему)
 START-APP: "start.exe"
 )#
 
 #( Start_nginx_process
 \ NoActive
-Time: START-TIME
+Time: START-TIME                                \ запуск при старте сисемы
 \ Rule: FILE-EXIST: "d:\START.EXE"
-CREATE SessionKey 35 ALLOT
-: StringRep { a1 u1 a3 u3 a4 u4 \ rest a2 u2 -- }
+CREATE SessionKey 35 ALLOT                      \ объявляем переменную
+: StringRep { a1 u1 a3 u3 a4 u4 \ rest a2 u2 -- }       \ определяем процедуру замены в строке
   1 ALLOCATE THROW TO a2
   a2 0! 0 TO u2
   a1 u1 
@@ -28,50 +28,50 @@ CREATE SessionKey 35 ALLOT
   ROT DROP ;
 Action:
 
-PROC-EXIST: "nginx.exe" 
+PROC-EXIST: "nginx.exe"                         \ пытаемся нормально завершить имеющийся nginx
 IF
 StartIn: "c:\Program Files\nginx\"
 START-APP: "nginx.exe -s stop"
-START-APPW: imdisk -D -m B:
+START-APPW: imdisk -D -m B:                     \ отключаем рам-диск
 PAUSE: 500
-KILL: "nginx.exe"
+KILL: "nginx.exe"                               \ добиваем nginx если он не вышел за 0.5 сек
 THEN
 
-START-APPW: imdisk -a -s 25M -m B: -p "/fs:fat /q /y"
+START-APPW: imdisk -a -s 25M -m B: -p "/fs:fat /q /y"  \ Монтируем новый чистый рам-диск b: и создаем на нем фс fat
 PAUSE: 500
 FILE-DELETE: "c:\flag.log"
-DIR-CREATE: "b:\html\bank\"
+DIR-CREATE: "b:\html\bank\"                             \ здесь будет наша статика
 RECURSIVE
-FOR-FILES: "c:\Program Files\nginx\html\bank\*"
+FOR-FILES: "c:\Program Files\nginx\html\bank\*"         \ копируем все файлы-шаблоны в папку, из которой раздаем статику
 FILE-COPY: "%FOUND-FULLPATH%" "b:\html\bank\%FOUND-RELPATH%"
 ;FOR-FILES 
 
-FILE-WRITE: "b:\html\bank\index.html" ""
-READ-BY-LINE: "d:\Sslgate.url"
-FOUND-LINE 39 /STRING 34 MIN SessionKey PLACE
+FILE-WRITE: "b:\html\bank\index.html" ""                \ создаем пустой начальный файл
+READ-BY-LINE: "d:\Sslgate.url"                          \ ищем влоб сеансовый ключ в этом файле и запоминаем его в переменную SessionKey
+FOUND-LINE 39 /STRING 34 MIN SessionKey PLACE           \ (это окажутся последние 34 символа последней строки)
 ;READ-BY-LINE
 
-READ-BY-LINE: "b:\html\bank\i.t"
-FOUND-LINE S" SessionKey" SessionKey COUNT StringRep S" b:\html\bank\index.html" FAPPEND
-;READ-BY-LINE
+READ-BY-LINE: "b:\html\bank\i.t"                        \ читаем по строке файл шаблона
+FOUND-LINE S" SessionKey" SessionKey COUNT StringRep S" b:\html\bank\index.html" FAPPEND \ записываем каждую строку из шаблона в начальный файл
+;READ-BY-LINE                                                                            \ по пути заменем строку с 'SessionKey' из шаблоне на значение переменной SessionKey
 
-StartIn: "c:\Program Files\nginx\"
+StartIn: "c:\Program Files\nginx\"                      \ начальный файл готов, запускаем nginx
 START-APP: "nginx.exe"
 )#
 
 #( remote_restarter
-WatchFile: "c:\flag.log"
+WatchFile: "c:\flag.log"                                \ следим за этим файлом (обратная связь из вэб-приложения)
 Action:
-FILE-EMPTY: "c:\flag.log"
+FILE-EMPTY: "c:\flag.log"                               \ если он оказался не пустой после операции ввода-вывода с ним, то
 IF
-ELSE
+ELSE                                                    \ выполняем эти команды
 Restart_token_gate_process LAUNCH
 Start_nginx_process LAUNCH
 THEN
 )#
 
-#( KillIE
-WatchProc: "iexplore.exe"
+#( KillIE                                               \ задача не дает работать IE, который вызывает start.exe
+WatchProc: "iexplore.exe"                               
 Action:
 KILL: "iexplore.exe"
 )#

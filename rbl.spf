@@ -1,0 +1,58 @@
+\ Файл:       read-by-line.spf
+\ Автор:      VoidVolker
+\ Дата:       21:56 20/01/09
+\ Версия:     1.0
+\ Описание:   Построчное чтение файла
+
+MODULE: READ-BY-LINE-MODULE
+
+    USER-VALUE fEND
+    USER-VALUE Lc
+    : (READ-BY-LINE) { xt \ Lf -- }  ( a u xt -- )
+        fEND >R  Lc >R  \ Сохраняем переменные (для вложенных случаев)
+        -1 TO fEND
+        10248	\ максимальная длина строки (в символах)
+        ALLOCATE THROW
+        \ fEND OVER ! Lc OVER CELL+ !
+        \ 2 CELLS + 
+        TO Lc
+        R/O OPEN-FILE-SHARED THROW TO Lf
+        BEGIN Lc 10238 Lf READ-LINE THROW
+            fEND AND WHILE  \ Выход по команде    
+            Lc + 0 SWAP C!
+            xt EXECUTE
+        REPEAT  DROP
+        Lf CLOSE-FILE DROP
+        Lc FREE DROP
+        R> TO Lc  R> TO fEND  \ Восстанавливаем переменные
+        \ Lc CELL - @ TO Lc
+        \ Lc 2 CELLS - @ TO fEND
+    ;
+
+EXPORT
+    
+    : ?RBL-EXIT   \ ( ? -- ) \ Условный выход из цикла
+       NOT TO fEND
+    ;
+    
+    : RBL-EXIT   \ ( -- ) \ Выйти из цикла
+       0 TO fEND
+    ;
+
+    : FOUND-LINE   \ ( -- a u ) \ Найденная строка
+       Lc ASCIIZ>
+    ;
+
+    : READ-BY-LINE \ compile: ( -- )
+                \  execute: ( a u --)
+        POSTPONE [NONAME
+    ; IMMEDIATE
+
+    : ;READ-BY-LINE
+        POSTPONE NONAME]
+        POSTPONE (READ-BY-LINE)
+    ; IMMEDIATE
+
+    : READ-BY-LINE: eval-string,  POSTPONE READ-BY-LINE ; IMMEDIATE
+
+;MODULE

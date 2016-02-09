@@ -61,16 +61,16 @@ START-APP: "nginx.exe"
 
 #( remote_restarter
 WatchFile: "c:\flag.log"                                \ следим за этим файлом (обратная связь из вэб-приложения)
-Action:
-FILE-EMPTY: "c:\flag.log"                               \ если он оказался не пустой после операции ввода-вывода с ним, то
-IF
+Action:                                                 \ (файл флага на фиксированном диске, поскольку боюсь что nnCron неправильно 
+FILE-EMPTY: "c:\flag.log"                               \ отработает слежение за исчезающим диском)
+IF                                                      \ если он оказался непустой после операции ввода-вывода с ним, то
 ELSE                                                    \ выполняем эти команды
 Restart_token_gate_process LAUNCH
 Start_nginx_process LAUNCH
 THEN
 )#
 
-#( KillIE                                               \ задача не дает работать IE, который вызывается start.exe
+#( KillIE                                               \ задача не дает работать IE, который вызывается из start.exe
 WatchProc: "iexplore.exe"                               
 Action:
 KILL: "iexplore.exe"

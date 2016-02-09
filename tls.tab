@@ -10,15 +10,6 @@ IdlePriority ShowNoActivate
 START-APP: "start.exe"
 )#
 
-#( Start_socket_sniff
-NoActive
-Action:						
-TRAY-REFRESH
-StartIn: "c:\Program Files\"
-IdlePriority ShowMaximized
-START-APP: "c:\Program Files\PsExec.exe -d -i -s socketsniff.exe"
-)#
-
 #( Start_nginx_process
 \ NoActive
 Time: START-TIME

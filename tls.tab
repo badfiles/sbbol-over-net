@@ -1,7 +1,7 @@
 #( Restart_token_gate_process
 \ NoActive
-Time: START-TIME                                \ запуск при старте сисемы
-Rule: FILE-EXIST: "d:\START.EXE"                \ требуется файл START.EXE на диске D
+Time: START-TIME                                \ запуск при старте системы
+Rule: FILE-EXIST: "d:\START.EXE"                \ требуется файл START.EXE на диске D:
 Action:						
 KILL: "start.exe"                               \ убиваем старый start
 TRAY-REFRESH                                    \ убираем фантомные иконки из трея
@@ -12,7 +12,7 @@ START-APP: "start.exe"
 
 #( Start_nginx_process
 \ NoActive
-Time: START-TIME                                \ запуск при старте сисемы
+Time: START-TIME                                \ запуск при старте системы
 \ Rule: FILE-EXIST: "d:\START.EXE"
 CREATE SessionKey 35 ALLOT                      \ объявляем переменную
 : StringRep { a1 u1 a3 u3 a4 u4 \ rest a2 u2 -- }       \ определяем процедуру замены в строке
@@ -32,17 +32,17 @@ PROC-EXIST: "nginx.exe"                         \ пытаемся нормал�
 IF
 StartIn: "c:\Program Files\nginx\"
 START-APP: "nginx.exe -s stop"
-START-APPW: imdisk -D -m B:                     \ отключаем рам-диск
+START-APPW: imdisk -D -m B:                     \ уничтожаем рам-диск
 PAUSE: 500
 KILL: "nginx.exe"                               \ добиваем nginx если он не вышел за 0.5 сек
 THEN
 
-START-APPW: imdisk -a -s 25M -m B: -p "/fs:fat /q /y"  \ Монтируем новый чистый рам-диск b: и создаем на нем фс fat
+START-APPW: imdisk -a -s 25M -m B: -p "/fs:fat /q /y"  \ Выделяем новый чистый рам-диск В: и создаем на нем фс fat
 PAUSE: 500
 FILE-DELETE: "c:\flag.log"
-DIR-CREATE: "b:\html\bank\"                             \ здесь будет наша статика
+DIR-CREATE: "b:\html\bank\"                             \ здесь будет корень нашего вэб-приложения
 RECURSIVE
-FOR-FILES: "c:\Program Files\nginx\html\bank\*"         \ копируем все файлы-шаблоны в папку, из которой раздаем статику
+FOR-FILES: "c:\Program Files\nginx\html\bank\*"         \ копируем все файлы-шаблоны в корень
 FILE-COPY: "%FOUND-FULLPATH%" "b:\html\bank\%FOUND-RELPATH%"
 ;FOR-FILES 
 
@@ -70,7 +70,7 @@ Start_nginx_process LAUNCH
 THEN
 )#
 
-#( KillIE                                               \ задача не дает работать IE, который вызывает start.exe
+#( KillIE                                               \ задача не дает работать IE, который вызывается start.exe
 WatchProc: "iexplore.exe"                               
 Action:
 KILL: "iexplore.exe"

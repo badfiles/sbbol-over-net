@@ -65,7 +65,7 @@ Action:
 FILE-EMPTY: "c:\flag.log"
 IF
 ELSE
-\ Restart_token_gate_process LAUNCH
+Restart_token_gate_process LAUNCH
 Start_nginx_process LAUNCH
 THEN
 )#

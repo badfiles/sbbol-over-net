@@ -39,7 +39,7 @@ THEN
 
 START-APPW: imdisk -a -s 25M -m B: -p "/fs:fat /q /y"  \ Выделяем новый чистый рам-диск В: и создаем на нем фс fat
 PAUSE: 500
-FILE-DELETE: "c:\flag.log"
+FILE-DELETE: "c:\*.log"
 DIR-CREATE: "b:\html\bank\"                             \ здесь будет корень нашего вэб-приложения
 RECURSIVE
 FOR-FILES: "c:\Program Files\nginx\html\bank\*"         \ копируем все файлы-шаблоны в корень
@@ -60,13 +60,23 @@ START-APP: "nginx.exe"
 )#
 
 #( remote_restarter
-WatchFile: "c:\flag.log"                                \ следим за этим файлом (обратная связь из вэб-приложения)
+WatchFile: "c:\reload.log"                              \ следим за этим файлом (обратная связь из вэб-приложения)
 Action:                                                 \ (файл флага на фиксированном диске, поскольку боюсь что nnCron неправильно 
-FILE-EMPTY: "c:\flag.log"                               \ отработает слежение за исчезающим диском)
+FILE-EMPTY: "c:\reload.log"                             \ отработает слежение за исчезающим диском)
 IF                                                      \ если он оказался непустой после операции ввода-вывода с ним, то
 ELSE                                                    \ выполняем эти команды
 Restart_token_gate_process LAUNCH
 Start_nginx_process LAUNCH
+THEN
+)#
+
+#( clear_cache
+WatchFile: "c:\ccache.log"                              \ следим за этим файлом (обратная связь из вэб-приложения)
+Action:
+FILE-EMPTY: "c:\ccache.log"                             
+IF                                                      \ если он оказался непустой после операции ввода-вывода с ним, то
+ELSE                                                    \ выполняем эти команды
+RECURSIVE FILE-DELETE: "b:\vpn-cache\*"
 THEN
 )#
 

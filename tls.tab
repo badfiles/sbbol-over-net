@@ -48,12 +48,12 @@ FILE-COPY: "%FOUND-FULLPATH%" "b:\html\bank\%FOUND-RELPATH%"
 
 FILE-WRITE: "b:\html\bank\index.html" ""                \ создаем пустой начальный файл
 READ-BY-LINE: "d:\Sslgate.url"                          \ ищем влоб сеансовый ключ в этом файле и запоминаем его в переменную SessionKey
-FOUND-LINE 39 /STRING 34 MIN SessionKey PLACE           \ (это окажутся последние 34 символа последней строки)
+FOUND-LINE 39 /STRING 34 MIN SessionKey PLACE           \ (это будут 34 символа, начиная с 40-го последней строки)
 ;READ-BY-LINE
 
 READ-BY-LINE: "b:\html\bank\i.t"                        \ читаем по строке файл шаблона
 FOUND-LINE S" SessionKey" SessionKey COUNT StringRep S" b:\html\bank\index.html" FAPPEND \ записываем каждую строку из шаблона в начальный файл
-;READ-BY-LINE                                                                            \ по пути заменем строку с 'SessionKey' из шаблоне на значение переменной SessionKey
+;READ-BY-LINE                                                                            \ по пути заменем строку с 'SessionKey' из шаблона на значение переменной SessionKey
 
 StartIn: "c:\Program Files\nginx\"                      \ начальный файл готов, запускаем nginx
 START-APP: "nginx.exe"

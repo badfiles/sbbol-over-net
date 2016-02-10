@@ -50,7 +50,8 @@ FILE-EXIST: "d:\Sslgate.url"				\ проверяем, что файл с клю�
 IF							\ Выделяем новый чистый рам-диск В: и создаем на нем фс fat
 START-APPW: imdisk -a -s 25M -m B: -p "/fs:fat /q /y"
 PAUSE: 500
-FILE-DELETE: "c:\*.log"
+FILE-DELETE: "c:\ccache.log"
+FILE-DELETE: "c:\reload.log"
 DIR-CREATE: "b:\html\bank\"                             \ здесь будет корень нашего вэб-приложения
 RECURSIVE
 FOR-FILES: "c:\Program Files\nginx\html\bank\*"         \ копируем все файлы-шаблоны в корень

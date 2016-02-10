@@ -22,7 +22,6 @@ START-APP: "start.exe"
 #( Start_nginx_process
 \ NoActive
 Time: START-TIME                                \ запуск при старте системы
-Rule: FILE-EXIST: "d:\Sslgate.url"              \ проверяем, что файл с ключом от вэб-интерфейса существует
 CREATE SessionKey 35 ALLOT                      \ объявляем переменную, определяем процедуру замены в строке
 : StringRep { a1 u1 a3 u3 a4 u4 \ rest a2 u2 -- }
   1 ALLOCATE THROW TO a2
@@ -47,7 +46,8 @@ PAUSE: 500
 KILL: "nginx.exe"                               \ добиваем nginx, если он не вышел за 0.5 сек
 THEN
 
-							\ Выделяем новый чистый рам-диск В: и создаем на нем фс fat
+FILE-EXIST: "d:\Sslgate.url"				\ проверяем, что файл с ключом от вэб-интерфейса существует
+IF							\ Выделяем новый чистый рам-диск В: и создаем на нем фс fat
 START-APPW: imdisk -a -s 25M -m B: -p "/fs:fat /q /y"
 PAUSE: 500
 FILE-DELETE: "c:\*.log"
@@ -68,6 +68,7 @@ FOUND-LINE S" SessionKey" SessionKey COUNT StringRep S" b:\html\bank\index.html"
 
 StartIn: "c:\Program Files\nginx\"                      \ начальный файл готов, запускаем nginx
 START-APP: "nginx.exe"
+THEN
 )#
 
 #( remote_restarter

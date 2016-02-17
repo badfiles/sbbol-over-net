@@ -1,5 +1,9 @@
 #( Restart_token_gate_process
 \ NoActive
+\ AsLoggedUser					\ Включите эту опцию, если в 0 сессию при старте залогинен пользователь.
+						\ Общее правило такое -- процесс нужно запускать от имени пользователя
+						\ в нулевой сессии. Если в нулевой сессии меняется пользователь,
+						\ процесс теряет связь со смарт-картой и его надо опять запускать.
 Time: START-TIME                                \ запуск при старте системы
 Rule: FILE-EXIST: "d:\Sslgate.url"              \ проверяем, что ключ вставлен и его блочное устройство определилось 
 Action:
@@ -16,6 +20,7 @@ StartIn: "c:\image\"	\ запускать гейт мы будем отсюда 
 			\ Но там ещё лежат ресурсы отдельным файлом, так что лучше все равно скопировать,
 			\ поскольку флэшка эта очень медленная.
 IdlePriority ShowNoActivate                     \ параметры запуска гейта (чтобы при 100% CPU не вешал систему)
+						\ со свежей прошивкой 15 года параметр IdlePriority, возможно, не нужен
 START-APP: start.exe
 )#
 
@@ -70,15 +75,15 @@ READ-BY-LINE: "b:\html\bank\i.t"                        \ читаем по ст
 FOUND-LINE S" SessionKey" SessionKey COUNT StringRep S" b:\html\bank\index.html" FAPPEND \ записываем каждую строку из шаблона в начальный файл
 ;READ-BY-LINE                                                                            \ по пути заменем строку с 'SessionKey' из шаблона на значение переменной SessionKey
 
-StartIn: "%PROGRAMFILES%\nginx\"                      \ начальный файл готов, запускаем nginx
+StartIn: "%PROGRAMFILES%\nginx\"                        \ начальный файл готов, запускаем nginx
 START-APP: nginx.exe
 THEN
 )#
 
 #( remote_restarter
-WatchFile: "%PROGRAMFILES%\nginx\logs\reload.log"     \ следим за этим файлом (обратная связь из вэб-приложения)
+WatchFile: "%PROGRAMFILES%\nginx\logs\reload.log"       \ следим за этим файлом (обратная связь из вэб-приложения)
 Action:                                                 \ (файл флага на фиксированном диске, поскольку боюсь что nnCron неправильно
-FILE-EMPTY: "%PROGRAMFILES%\nginx\logs\reload.log"    \ отработает слежение за исчезающим диском)
+FILE-EMPTY: "%PROGRAMFILES%\nginx\logs\reload.log"      \ отработает слежение за исчезающим диском)
 IF                                                      \ если он оказался непустой после операции ввода-вывода с ним,
 ELSE                                                    \ то выполняем эти команды
 \ Restart_token_gate_process LAUNCH
@@ -88,7 +93,7 @@ THEN
 )#
 
 #( clear_cache
-WatchFile: "%PROGRAMFILES%\nginx\logs\ccache.log"     \ следим за этим файлом (обратная связь из вэб-приложения)
+WatchFile: "%PROGRAMFILES%\nginx\logs\ccache.log"       \ следим за этим файлом (обратная связь из вэб-приложения)
 Action:
 FILE-EMPTY: "%PROGRAMFILES%\nginx\logs\ccache.log"
 IF                                                      \ если он оказался непустой после операции ввода-вывода с ним,
@@ -98,7 +103,7 @@ THEN
 )#
 
 #( reload_nginx
-WatchFile: "%PROGRAMFILES%\nginx\conf\nginx.conf"    \ при изменении этого файла
+WatchFile: "%PROGRAMFILES%\nginx\conf\nginx.conf"       \ при изменении этого файла
 Action:  
 StartIn: "%PROGRAMFILES%\nginx\"			\ посылаем сигнал процессу nginx перечитать конфиг
 START-APP: nginx.exe -s reload

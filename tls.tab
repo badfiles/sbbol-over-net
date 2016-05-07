@@ -1,15 +1,3 @@
-#( KillIE					\ задача не дает работать IE, который вызывается из start.exe
-NoActive
-\ WatchProc: "iexplore.exe"
-Action:
-BEGIN
-PROC-EXIST: "iexplore.exe"
-WHILE
-PAUSE: 1000
-KILL: "iexplore.exe"
-REPEAT
-)#
-
 #( Restart_token_gate_process
 \ NoActive
 \ AsLoggedUser					\ Включите эту опцию, если в 0 сессию при старте залогинен пользователь.
@@ -34,8 +22,13 @@ StartIn: "c:\image\"	\ запускать гейт мы будем отсюда 
 IdlePriority ShowNoActivate			\ параметры запуска гейта (чтобы при 100% CPU не вешал систему)
 						\ со свежей прошивкой 15 года параметр IdlePriority, возможно, не нужен
 START-APP: start.exe
-PAUSE 1000
-KillIE LAUNCH
+PAUSE 2000
+BEGIN
+PROC-EXIST: "iexplore.exe"
+WHILE
+KILL: "iexplore.exe"
+PAUSE: 200
+REPEAT
 )#
 
 #( Restart_sharing_service

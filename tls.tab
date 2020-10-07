@@ -3,9 +3,9 @@
 \ AsLoggedUser					\ Включите эту опцию, если в 0 сессию при старте залогинен пользователь.
 						\ Общее правило такое -- процесс нужно запускать от имени пользователя
 						\ в нулевой сессии. Если в нулевой сессии меняется пользователь,
-						\ процесс теряет связь со смарт-картой и его надо опять запускать.
+						\ процесс теряет связь со смарт-картой и его надо опять запускать
 Time: START-TIME				\ запуск при старте системы
-Rule: FILE-EXIST: "d:\Sslgate.url"		\ проверяем, что ключ вставлен и его блочное устройство определилось 
+Rule: FILE-EXIST: "d:\Sslgate.url"		\ проверяем, что ключ вставлен и его блочное устройство определилось
 Action:
 KILL: "start.exe"				\ убиваем старый start
 TRAY-REFRESH					\ убираем фантомные иконки из трея
@@ -13,12 +13,12 @@ StartIn: "c:\image\"	\ запускать гейт мы будем отсюда 
 			\ в заголовке гейта установлен флаг, который заставляет ОС копировать exe
 			\ в своп и запускать из свопа, если exe лежит на съемном диске.
 			\ На виртуальных машинах своп обычно отключен, и что тогда происходит я не знаю,
-			\ по-этому придётся вручную поработать операционной системой 
+			\ по-этому придётся вручную поработать операционной системой
 			\ и запустить образ с фиксированного диска, как и хотели разработчики.
 			\ Если на вашей системе своп не отключен, то ничего копировать не надо,
 			\ запускайте прямо с флэшки, в моём случае было бы StartIn: "d:\"
 			\ Но там ещё лежат ресурсы отдельным файлом, так что лучше все равно скопировать,
-			\ поскольку флэшка эта очень медленная.
+			\ поскольку флэшка эта очень медленная
 IdlePriority ShowNoActivate			\ параметры запуска гейта (чтобы при 100% CPU не вешал систему)
 						\ со свежей прошивкой 15 года параметр IdlePriority, возможно, не нужен
 START-APP: start.exe
@@ -34,18 +34,6 @@ REPEAT
 #( Restart_sharing_service
 \ NoActive
 Time: START-TIME                                \ запуск при старте системы
-CREATE SessionKey 35 ALLOT                      \ объявляем переменную, определяем процедуру замены в строке
-: StringRep { a1 u1 a3 u3 a4 u4 \ rest a2 u2 -- }
-  1 ALLOCATE THROW TO a2
-  a2 0! 0 TO u2
-  a1 u1 
-  BEGIN OVER SWAP a3 u3 SEARCH WHILE 
-  TO rest SWAP 2DUP - a2 u2 2SWAP S+ TO u2 TO a2
-  a4 u4 a2 u2 2SWAP S+ TO u2 TO a2
-  rest u3 /STRING 
-  REPEAT
-  a2 u2 2SWAP S+
-  ROT DROP ;
 Action:
 
 PROC-EXIST: "nginx.exe"                         \ просим nginx выйти по-хорошему
@@ -65,22 +53,14 @@ THEN
 
 FILE-EXIST: "d:\Sslgate.url"				\ проверяем, что файл с ключом от вэб-интерфейса существует
 IF							\ Выделяем новый чистый рам-диск В: и создаем на нем фс fat
-START-APPW: imdisk -a -s 25M -m B: -p "/fs:fat /q /y"
+START-APPW: imdisk -a -s 65M -m B: -p "/fs:fat /q /y"
 PAUSE: 500
 DIR-CREATE: "b:\html\bank\"                             \ здесь будет корень нашего вэб-приложения
 RECURSIVE
 FOR-FILES: "c:\Program Files\nginx\html\bank\*"         \ копируем все файлы-шаблоны в корень
 FILE-COPY: "%FOUND-FULLPATH%" "b:\html\bank\%FOUND-RELPATH%"
-;FOR-FILES 
+;FOR-FILES
 
-FILE-WRITE: "b:\html\bank\index.html" ""                \ создаем пустой начальный файл
-READ-BY-LINE: "d:\Sslgate.url"                          \ ищем влоб сеансовый ключ в этом файле и запоминаем его в переменную SessionKey
-FOUND-LINE 39 /STRING 34 MIN SessionKey PLACE           \ (это будут 34 символа, начиная с 40-го последней строки)
-;READ-BY-LINE
-
-READ-BY-LINE: "b:\html\bank\i.t"                        \ читаем по строке файл шаблона
-FOUND-LINE S" SessionKey" SessionKey COUNT StringRep S" b:\html\bank\index.html" FAPPEND \ записываем каждую строку из шаблона в начальный файл
-;READ-BY-LINE                                                                            \ по пути заменем строку с 'SessionKey' из шаблона на значение переменной SessionKey
 
 StartIn: "%PROGRAMFILES%\nginx\"                        \ начальный файл готов, запускаем nginx
 START-APP: nginx.exe
@@ -111,7 +91,7 @@ THEN
 
 #( reload_nginx
 WatchFile: "%PROGRAMFILES%\nginx\conf\nginx.conf"       \ при изменении этого файла
-Action:  
+Action:
 StartIn: "%PROGRAMFILES%\nginx\"			\ посылаем сигнал процессу nginx перечитать конфиг
 START-APP: nginx.exe -s reload
 )#
